@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserType {
+  BUYER
+  REALTOR
+  ADMIN
+}
+
+model User {
+  id             Int       @id @default(autoincrement())
+  email          String    @unique @map("email")
+  name           String
+  phone          String
+  password       String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user_type      UserType
+  Home           Home[]
+  buyerMessage   Message[] @relation("buyerMessage")
+  realtorMessage Message[] @relation("realtorMessage")
+}
+
+enum PropertyType {
+  RESIDENTIAL
+  CONDO
+}
+
+model Home {
+  id                  Int          @id @default(autoincrement())
+  name                String
+  address             String
+  city                String
+  number_of_bedrooms  Int
+  number_of_bathrooms Int
+  listed_date         DateTime     @default(now())
+  price               Float
+  land_size           Float
+  propertyType        PropertyType
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  Image               Image[]
+  realtorId           Int
+  User                User         @relation(fields: [realtorId], references: [id])
+  Message             Message[]
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  url       String
+  homeId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Home      Home     @relation(fields: [homeId], references: [id])
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  message   String
+  homeId    Int
+  home      Home     @relation(fields: [homeId], references: [id])
+  realtorId Int
+  realtor   User     @relation("realtorMessage", fields: [realtorId], references: [id])
+  buyerId   Int
+  buyer     User     @relation("buyerMessage", fields: [buyerId], references: [id])
+  createdAt DateTime @default(now())
+}
